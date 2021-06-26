@@ -1,0 +1,19 @@
+{
+  "name": "bls_ts",
+  "type": "module",
+  "version": "1.0.0",
+  "main": "dist/app.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "tsc && node dist/app.js"
+  },
+  "dependencies": {
+    "bls-signatures": "https://gitpkg.now.sh/Chia-Network/bls-signatures/js-bindings?main",
+    "bls-wasm": "github:herumi/bls-wasm"
+  },
+  "devDependencies": {
+    "@types/node": "^15.12.4",
+    "tslint": "^6.1.3",
+    "typescript": "^4.3.4"
+  }
+}

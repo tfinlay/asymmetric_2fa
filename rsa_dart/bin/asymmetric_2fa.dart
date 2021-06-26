@@ -1,13 +1,24 @@
+import 'dart:convert';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:pointycastle/export.dart';
 
 AsymmetricKeyPair<RSAPublicKey, RSAPrivateKey> generateKeypair() {
+  final _sGen = Random.secure();
+  final secureRandom = FortunaRandom();
+  secureRandom.seed(KeyParameter(
+      Uint8List.fromList(List.generate(32, (_) => _sGen.nextInt(255)))
+  ));
+
   final generator = RSAKeyGenerator()
-  ..init(RSAKeyGeneratorParameters(
-      BigInt.parse('65537'),
-      2048,
-      64
+  ..init(ParametersWithRandom(
+      RSAKeyGeneratorParameters(
+          BigInt.parse('65537'),
+          2048,
+          64
+      ),
+      secureRandom
   ));
   final pair = generator.generateKeyPair();
 
@@ -23,12 +34,7 @@ int createTimestamp() {
 
 Uint8List createTimestampData(int timestamp) {
   final bytes = Uint8List.fromList(timestamp.toRadixString(16).codeUnits);
-  
-  final hasher = SHA1Digest();
-  hasher.process(bytes);
-  hasher.doFinal(out, outOff)
-  
-  return ;
+  return bytes;
 }
 
 Uint8List signTimestamp(RSAPrivateKey privateKey, int timestamp) {
@@ -55,4 +61,16 @@ bool verifyTimestamp(RSAPublicKey publicKey, Uint8List expectedTimestamp, Uint8L
 
 void main(List<String> arguments) {
   final keypair = generateKeypair();
+  final public = keypair.publicKey;
+  final private = keypair.privateKey;
+
+  final currentTimestamp = createTimestamp();
+  final currentTimestampData = createTimestampData(currentTimestamp);
+  final signedTimestamp = signTimestamp(private, currentTimestamp);
+  final isVerified = verifyTimestamp(public, currentTimestampData, signedTimestamp);
+
+  print('Timestamp: $currentTimestamp ($currentTimestampData)');
+  print('Signed Timestamp: $signedTimestamp');
+  print('\tb64: ${base64.encode(signedTimestamp)}');
+  print('is verified? $isVerified');
 }
